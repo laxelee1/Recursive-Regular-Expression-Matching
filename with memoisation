@@ -1,0 +1,80 @@
+def isMatch(self, s: str, p: str) -> bool:
+    class Element():
+        def __init__(self, name, multiple=False):
+            self.name = name
+            self.multiple = multiple
+        def __repr__(self):
+            rep = self.name
+            if self.multiple:
+                rep += '*'
+            return rep
+
+    pattern = []
+    for i, el in enumerate(p):
+        if el == '*':
+            pattern[-1].multiple = True
+        else:
+            pattern.append(Element(el))
+
+# def match(string, pattern)
+#     return whether there exists a match 
+# match(string, pattern) = match(reduced string w max first mult, reduced pattern) or ... or match(reduced string w min first mult, reduced pattern)
+    cache = {}
+    def match(string, pattern):
+        c = ''
+        for i in pattern:
+            c += i.name
+            if i.multiple:
+                c += '*'
+        if (string, c) in cache:
+            return cache[(string, c)]
+        if len(pattern) == 0:
+            if len(string) == 0:
+                cache[(string, c)] = True
+                return True
+            cache[(string, c)] = False
+            return False
+        snip = 0
+        for i, el in enumerate(pattern):
+            if not el.multiple:
+                try:
+                    letter = string[i]
+                except IndexError:
+                    cache[(string, c)] = False
+                    return False
+                if el.name != letter and el.name != '.':
+                    cache[(string, c)] = False
+                    return False
+                snip += 1
+            else:
+                break
+        else:
+            if len(string[snip:]) == 0:
+                cache[(string, c)] = True
+                return True
+            cache[(string, c)] = False
+            return False
+        mult = 0
+        while True:
+            try:
+                letter = string[snip + mult]
+            except IndexError:
+                break
+            if pattern[snip].name == letter or pattern[snip].name == '.':
+                mult += 1
+            else:
+                break
+        if mult == 0:
+            answer = match(string[snip:], pattern[snip+1:])
+            cache[(string, c)] = answer
+            return answer
+        for i in range(mult,-1,-1):
+            #print('snip =',snip, 'i =',i)
+            if match(string[snip + i:], pattern[snip+1:]):
+                cache[(string, c)] = True
+                return True
+        else:
+            cache[(string, c)] = False
+            return False
+    answer = match(s,pattern)
+    return answer
